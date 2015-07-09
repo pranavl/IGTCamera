@@ -64,10 +64,6 @@ public class MainActivity extends Activity {
      */
     private Button captureButton;
 
-    private DataOutputStream outToClient1;
-
-    private String trace;
-
     /**
      * TextView to display status messages.
      */
@@ -104,29 +100,20 @@ public class MainActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
 
-        trace = "";
-
         // Create layout
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
-        trace += "1";
 
         // Create an instance of Camera
         this.mCamera = getCameraInstance();
 
         this.txtStat = (TextView) findViewById(R.id.txt_status);
 
-        trace += "2";
-
-        this.txtStat.setText(trace);
-
         // Create Preview view and set it as the content of the activity.
         this.mPreview = new CameraPreview(this, this.mCamera);
         FrameLayout preview = (FrameLayout) findViewById(R.id.cam_preview);
         preview.addView(this.mPreview);
 
-        trace += "3";
         // Event listener to the Capture button
         captureButton = (Button) findViewById(R.id.btn_capture);
         captureButton.setOnClickListener(
@@ -135,13 +122,11 @@ public class MainActivity extends Activity {
                     public void onClick(View v) {
                         // get an image from the camera
                         //mCamera.takePicture(null, null, mPicture);
-                        txtStat.setText(trace += "r");
                         runServer();
                     }
                 }
         );
 
-        trace += "4";
         // Set up server socket
         try {
             this.servSock = new ServerSocket(this.SERVER_PORT);
@@ -151,34 +136,20 @@ public class MainActivity extends Activity {
                     MainActivity.class.getName()).log(Level.SEVERE, null, ex);
         }
 
-        trace += "5";
-        this.txtStat.setText(trace);
     }
 
     private void runServer() {
-        trace += "6";
-        this.txtStat.setText(trace);
         try {
 
             Socket clntSock = this.servSock.accept();
-            if (clntSock.isConnected()) {
-                this.txtStat.setText(trace += "+");
-            } else {
-                this.txtStat.setText(trace += "-");
-            }
-            trace += "7";
             BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clntSock.getInputStream()));
             DataOutputStream outToClient = new DataOutputStream(clntSock.getOutputStream());
             String clientSentence = inFromClient.readLine();
             this.con = true;
-            trace += "8";
             //this.mCamera.takePicture(null, null, this.mPicture);
-            trace += "9";
-            this.txtStat.setText(trace);
             outToClient.writeBytes("TEXT");
             outToClient.flush();
             outToClient.close();
-            this.txtStat.setText(trace+="0");
         } catch (IOException ex) {
             this.txtStat.setText("Exception 1");
             this.mCamera.release();
