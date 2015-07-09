@@ -4,39 +4,6 @@
               android:layout_width="fill_parent"
               android:layout_height="fill_parent">
     
-    <!--<TableLayout
-        android:paddingTop="10dip"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:stretchColumns="*">
-        
-        <TableRow>
-            <EditText
-                android:id="@+id/ipAddress"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:hint="IP address"
-                android:inputType="phone" />
-            <EditText
-                android:id="@+id/portAddress"
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:hint="Remote port"
-                android:inputType="phone" />
-            <Button android:text="Connect" android:id="@+id/btnConnect"
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:layout_weight="1" />
-        </TableRow>
-        <TableRow>
-            <TextView  
-                android:layout_width="wrap_content" 
-                android:layout_height="wrap_content"
-                android:id="@+id/conn_status"
-                android:gravity="left"/>
-        </TableRow>
-    </TableLayout>-->
-    
     <FrameLayout
         android:id="@+id/cam_preview"
         android:layout_width="fill_parent"

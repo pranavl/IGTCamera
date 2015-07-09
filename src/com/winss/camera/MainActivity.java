@@ -34,30 +34,7 @@ import java.util.logging.Logger;
  */
 public class MainActivity extends Activity {
 
-    /**
-     * Camera object.
-     */
-    private Camera mCamera;
-
-    /**
-     * CameraPreview object.
-     */
-    private CameraPreview mPreview;
-
-    /**
-     * Connected?
-     */
-    private boolean con;
-
-    /**
-     * Server port.
-     */
-    private final int SERVER_PORT = 8099;
-
-    /**
-     * Server socket.
-     */
-    private ServerSocket servSock;
+// UI ELEMENTS =================================================================
 
     /**
      * Button used to capture frame.
@@ -70,7 +47,36 @@ public class MainActivity extends Activity {
     private TextView txtStat;
 
     /**
-     * Picture Callback
+     * Camera object.
+     */
+    private Camera mCamera;
+
+// VARIABLES ===================================================================
+
+    /**
+     * Connected?
+     */
+    private boolean con;
+
+    /**
+     * Server port.
+     */
+    private final int SERVER_PORT = 8099;
+
+// OBJECTS =====================================================================
+
+    /**
+     * CameraPreview object.
+     */
+    private CameraPreview mPreview;
+
+    /**
+     * Server socket.
+     */
+    private ServerSocket servSock;
+    
+    /**
+     * Picture Callback.
      */
     private PictureCallback mPicture = new PictureCallback() {
         @Override
@@ -91,7 +97,15 @@ public class MainActivity extends Activity {
 //            }
         }
     };
+    
+    /**
+     * Thread for server.
+     */
+    Thread serverThread = null;
 
+    
+// METHODS =====================================================================
+    
     /**
      * Called when activity is first created.
      *
@@ -104,10 +118,12 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
+        // Connect UI elements
+        this.txtStat = (TextView) findViewById(R.id.txt_status);
+        this.txtStat.setText("Server port: " + this.SERVER_PORT);
+
         // Create an instance of Camera
         this.mCamera = getCameraInstance();
-
-        this.txtStat = (TextView) findViewById(R.id.txt_status);
 
         // Create Preview view and set it as the content of the activity.
         this.mPreview = new CameraPreview(this, this.mCamera);
@@ -138,13 +154,18 @@ public class MainActivity extends Activity {
 
     }
 
+    /**
+     * Run the server.
+     */
     private void runServer() {
         try {
 
             Socket clntSock = this.servSock.accept();
-            BufferedReader inFromClient = new BufferedReader(new InputStreamReader(clntSock.getInputStream()));
-            DataOutputStream outToClient = new DataOutputStream(clntSock.getOutputStream());
-            String clientSentence = inFromClient.readLine();
+            BufferedReader inFromClient = new BufferedReader(
+                    new InputStreamReader(clntSock.getInputStream()));
+            DataOutputStream outToClient = new DataOutputStream(
+                    clntSock.getOutputStream());
+            inFromClient.readLine();
             this.con = true;
             //this.mCamera.takePicture(null, null, this.mPicture);
             outToClient.writeBytes("TEXT");
@@ -167,7 +188,6 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         this.mCamera.release();
-//        this.ds.close();
     }
 
     /**
@@ -176,13 +196,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-//        this.ds.connect(myIp, port);
     }
 
     /**
      * Check if this device has a camera.
      *
-     * @param context
+     * @param context 
      * @return true if device has camera, false otherwise
      */
     private boolean checkCameraHardware(Context context) {
