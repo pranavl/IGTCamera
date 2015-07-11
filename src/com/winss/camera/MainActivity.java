@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 public class MainActivity extends Activity {
 
 // UI ELEMENTS =================================================================
-    
     /**
      * Button used to capture frame.
      */
@@ -49,16 +48,15 @@ public class MainActivity extends Activity {
     private Camera mCamera;
 
 // VARIABLES ===================================================================
-    
-    /**
-     * Connected?
-     */
-    private boolean con;
-
     /**
      * Server port.
      */
     private final int SERVER_PORT = 8099;
+
+    /**
+     * Byte array to be transferred.
+     */
+    byte[] d;
 
 // OBJECTS =====================================================================
     /**
@@ -77,20 +75,7 @@ public class MainActivity extends Activity {
     private PictureCallback mPicture = new PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-//            if (con == true) {
-//                try {
-//                    trace += "a";
-//                    txtStat.setText(trace);
-//                    //outToClient.write(data);
-//                    txtStat.setText(trace);
-//                    trace += "b";
-//                } catch (IOException ex) {
-//                    txtStat.setText("Exception 2");
-//                    mCamera.release();
-//                    Logger.getLogger(MainActivity.class.getName()).log(
-//                            Level.SEVERE, null, ex);
-//                }
-//            }
+            d = data;
         }
     };
 
@@ -100,7 +85,6 @@ public class MainActivity extends Activity {
     Thread serverThread = null;
 
 // THREADS =====================================================================
-    
     /**
      * Server thread.
      */
@@ -115,13 +99,12 @@ public class MainActivity extends Activity {
                 DataOutputStream outToClient = new DataOutputStream(
                         clntSock.getOutputStream());
                 inFromClient.readLine();
-                con = true;
-                //mCamera.takePicture(null, null, this.mPicture);
-                outToClient.writeBytes("TEXT");
+                //mCamera.takePicture(null, null, mPicture);
+                outToClient.write(d);
                 outToClient.flush();
                 outToClient.close();
             } catch (IOException ex) {
-                txtStat.setText("Exception 1");
+                txtStat.setText("Server thread expection");
                 mCamera.release();
                 Logger.getLogger(
                         MainActivity.class.getName()).log(
@@ -131,7 +114,6 @@ public class MainActivity extends Activity {
     }
 
 // METHODS =====================================================================
-    
     /**
      * Called when activity is first created.
      *
@@ -163,7 +145,7 @@ public class MainActivity extends Activity {
                     @Override
                     public void onClick(View v) {
                         // get an image from the camera
-                        //mCamera.takePicture(null, null, mPicture);
+                        mCamera.takePicture(null, null, mPicture);
                         serverThread = new Thread(new ServerThread());
                         serverThread.start();
                     }
@@ -191,7 +173,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * When app is paused, release the camera.
+     * When app is stopped, release the camera.
      */
     @Override
     protected void onStop() {
