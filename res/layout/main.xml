@@ -11,20 +11,20 @@
         android:layout_weight="1"
     />
 
-    <Switch
-        android:id="@+id/server_switch"
+    <Button
+        android:id="@+id/btn_capture"
+        android:text="@string/action_button_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
     />
-        
+    
     <TextView  
         android:layout_width="wrap_content" 
         android:layout_height="wrap_content"
         android:id="@+id/txt_status"
         android:layout_gravity="center"
         android:text=""
-    />    
-    
+    />
     
 </LinearLayout>

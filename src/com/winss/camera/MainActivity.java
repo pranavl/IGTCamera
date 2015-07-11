@@ -10,10 +10,7 @@ import android.hardware.Camera.PictureCallback;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.FrameLayout;
-import android.widget.Switch;
 import android.widget.TextView;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -35,10 +32,11 @@ import java.util.logging.Logger;
 public class MainActivity extends Activity {
 
 // UI ELEMENTS =================================================================
+    
     /**
-     * Switch to enable/disable server
+     * Button used to capture frame.
      */
-    private Switch servSwitch;
+    private Button actionButton;
 
     /**
      * TextView to display status messages.
@@ -46,26 +44,23 @@ public class MainActivity extends Activity {
     private TextView txtStat;
 
 // VARIABLES ===================================================================
+    
     /**
      * Server port.
      */
     private final int SERVER_PORT = 8099;
 
-    /**
-     * Flag to run server.
-     */
-    private boolean serverFlag;
-
 // OBJECTS =====================================================================
+    
     /**
      * Camera object.
      */
-    Camera mCamera;
+    private Camera mCamera;
 
     /**
      * CameraPreview object.
      */
-    CameraPreview mPreview;
+    private CameraPreview mPreview;
 
     /**
      * Server socket.
@@ -75,7 +70,7 @@ public class MainActivity extends Activity {
     /**
      * Byte array of picture.
      */
-    byte[] d;
+    private byte[] d;
 
     /**
      * Picture Callback.
@@ -83,7 +78,7 @@ public class MainActivity extends Activity {
     private final PictureCallback mPicture = new PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            //d = data;
+            d = data;
         }
     };
 
@@ -93,6 +88,7 @@ public class MainActivity extends Activity {
     Thread serverThread = null;
 
 // THREADS =====================================================================
+    
     /**
      * Server thread.
      */
@@ -100,28 +96,25 @@ public class MainActivity extends Activity {
 
         @Override
         public void run() {
-            while (serverFlag) {
-                try {
-                    Socket clntSock = servSock.accept();
-                    BufferedReader inFromClient = new BufferedReader(
-                            new InputStreamReader(clntSock.getInputStream()));
-                    DataOutputStream outToClient = new DataOutputStream(
-                            clntSock.getOutputStream());
-                    inFromClient.readLine();
-                    mCamera.takePicture(null, null, mPicture);
-                    outToClient.writeBytes("TEXT");
-                    outToClient.flush();
-                    outToClient.close();
-                } catch (IOException ex) {
-                    txtStat.setText("Thread expection");
-                    mCamera.release();
-                    Logger.getLogger(
-                            MainActivity.class.getName()).log(
-                                    Level.SEVERE, null, ex);
-                }
+            try {
+                Socket clntSock = servSock.accept();
+                BufferedReader inFromClient = new BufferedReader(
+                        new InputStreamReader(clntSock.getInputStream()));
+                DataOutputStream outToClient = new DataOutputStream(
+                        clntSock.getOutputStream());
+                inFromClient.readLine();
+                mCamera.takePicture(null, null, mPicture);
+                outToClient.write(d);
+                outToClient.flush();
+                outToClient.close();
+            } catch (IOException ex) {
+                txtStat.setText("Thread expection");
+                mCamera.release();
+                Logger.getLogger(
+                        MainActivity.class.getName()).log(
+                                Level.SEVERE, null, ex);
             }
         }
-
     }
 
 // METHODS =====================================================================
@@ -143,32 +136,21 @@ public class MainActivity extends Activity {
 
         // Create an instance of Camera
         this.mCamera = getCameraInstance();
-        if (mCamera == null) {
-            this.txtStat.setText("Camera is null");
-        }
+
         // Create Preview view and set it as the content of the activity.
         this.mPreview = new CameraPreview(this, this.mCamera);
         FrameLayout preview = (FrameLayout) findViewById(R.id.cam_preview);
         preview.addView(this.mPreview);
 
-        // Set up server switch
-        this.servSwitch = (Switch) findViewById(R.id.server_switch);
-        this.servSwitch.setChecked(false);
-        // Event listener for server switch
-        this.servSwitch.setOnCheckedChangeListener(
-                new OnCheckedChangeListener() {
-
+        // Event listener to the Capture button
+        this.actionButton = (Button) findViewById(R.id.btn_capture);
+        this.actionButton.setOnClickListener(
+                new View.OnClickListener() {
                     @Override
-                    public void onCheckedChanged(CompoundButton buttonView,
-                            boolean isChecked) {
-                        if (isChecked) {
-                            serverFlag = true;
-                            // Start server thread
-                            serverThread = new Thread(new ServerThread());
-                            serverThread.start();
-                        } else {
-                            serverFlag = false;
-                        }
+                    public void onClick(View v) {
+                        // Start server thread
+                        serverThread = new Thread(new ServerThread());
+                        serverThread.start();
                     }
                 }
         );
@@ -194,7 +176,7 @@ public class MainActivity extends Activity {
     }
 
     /**
-     * When app is stopped, release the camera.
+     * When app is paused, release the camera.
      */
     @Override
     protected void onStop() {
@@ -208,7 +190,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        this.mCamera = getCameraInstance();
     }
 
     /**
