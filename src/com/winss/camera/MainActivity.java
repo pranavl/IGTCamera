@@ -36,27 +36,31 @@ public class MainActivity extends Activity {
     /**
      * Button used to capture frame.
      */
-    private Button actionButton;
+    private Button captureButton;
 
     /**
      * TextView to display status messages.
      */
     private TextView txtStat;
 
+    /**
+     * Camera object.
+     */
+    private Camera mCamera;
+
 // VARIABLES ===================================================================
     
+    /**
+     * Connected?
+     */
+    private boolean con;
+
     /**
      * Server port.
      */
     private final int SERVER_PORT = 8099;
 
 // OBJECTS =====================================================================
-    
-    /**
-     * Camera object.
-     */
-    private Camera mCamera;
-
     /**
      * CameraPreview object.
      */
@@ -68,17 +72,25 @@ public class MainActivity extends Activity {
     private ServerSocket servSock;
 
     /**
-     * Byte array of picture.
-     */
-    private byte[] d;
-
-    /**
      * Picture Callback.
      */
-    private final PictureCallback mPicture = new PictureCallback() {
+    private PictureCallback mPicture = new PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
-            d = data;
+//            if (con == true) {
+//                try {
+//                    trace += "a";
+//                    txtStat.setText(trace);
+//                    //outToClient.write(data);
+//                    txtStat.setText(trace);
+//                    trace += "b";
+//                } catch (IOException ex) {
+//                    txtStat.setText("Exception 2");
+//                    mCamera.release();
+//                    Logger.getLogger(MainActivity.class.getName()).log(
+//                            Level.SEVERE, null, ex);
+//                }
+//            }
         }
     };
 
@@ -103,12 +115,13 @@ public class MainActivity extends Activity {
                 DataOutputStream outToClient = new DataOutputStream(
                         clntSock.getOutputStream());
                 inFromClient.readLine();
-                mCamera.takePicture(null, null, mPicture);
-                outToClient.write(d);
+                con = true;
+                //mCamera.takePicture(null, null, this.mPicture);
+                outToClient.writeBytes("TEXT");
                 outToClient.flush();
                 outToClient.close();
             } catch (IOException ex) {
-                txtStat.setText("Thread expection");
+                txtStat.setText("Exception 1");
                 mCamera.release();
                 Logger.getLogger(
                         MainActivity.class.getName()).log(
@@ -118,10 +131,11 @@ public class MainActivity extends Activity {
     }
 
 // METHODS =====================================================================
+    
     /**
      * Called when activity is first created.
      *
-     * @param savedInstanceState ...
+     * @param savedInstanceState .
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -143,12 +157,13 @@ public class MainActivity extends Activity {
         preview.addView(this.mPreview);
 
         // Event listener to the Capture button
-        this.actionButton = (Button) findViewById(R.id.btn_capture);
-        this.actionButton.setOnClickListener(
+        this.captureButton = (Button) findViewById(R.id.btn_capture);
+        this.captureButton.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        // Start server thread
+                        // get an image from the camera
+                        //mCamera.takePicture(null, null, mPicture);
                         serverThread = new Thread(new ServerThread());
                         serverThread.start();
                     }
@@ -195,7 +210,7 @@ public class MainActivity extends Activity {
     /**
      * Check if this device has a camera.
      *
-     * @param context ...
+     * @param context .
      * @return true if device has camera, false otherwise
      */
     private boolean checkCameraHardware(Context context) {
@@ -214,10 +229,35 @@ public class MainActivity extends Activity {
             c = Camera.open(); // Get a Camera instance
         } catch (Exception e) {
             // Camera is not available (in use or does not exist)
-            Logger.getLogger(
-                    MainActivity.class.getName()).log(Level.SEVERE, null, e);
         }
         return c;
     }
 
 }
+
+/** OTHER ======================================================================
+
+    private void runServer() {
+        try {
+
+            Socket clntSock = this.servSock.accept();
+            BufferedReader inFromClient = new BufferedReader(
+                    new InputStreamReader(clntSock.getInputStream()));
+            DataOutputStream outToClient = new DataOutputStream(
+                    clntSock.getOutputStream());
+            inFromClient.readLine();
+            this.con = true;
+            //this.mCamera.takePicture(null, null, this.mPicture);
+            outToClient.writeBytes("TEXT");
+            outToClient.flush();
+            outToClient.close();
+        } catch (IOException ex) {
+            this.txtStat.setText("Exception 1");
+            this.mCamera.release();
+            Logger.getLogger(
+                    MainActivity.class.getName()).log(
+                            Level.SEVERE, null, ex);
+        }
+
+    }
+*/
